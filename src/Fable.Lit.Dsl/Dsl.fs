@@ -264,7 +264,7 @@ module Elements =
     let menu = ElementBuilder("menu")
 
     // Template
-    let template = ElementBuilder("template")
+    //let template = ElementBuilder("template") // Caused conflict with 'HtmlDsl.template' function. Could rename to `templateEl` if needed.
     let slot = ElementBuilder("slot")
 
 // =============================================================================
