@@ -5,6 +5,27 @@
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
   </PropertyGroup>
 
+  <PropertyGroup>
+    <Version>1.0.0</Version>
+    <Authors>Jordan Marr</Authors>
+    <Description>Shoelace web component bindings for Fable.Lit.Dsl. Provides strongly-typed F# DSL elements for building Shoelace-based UIs with Fable.Lit.</Description>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageProjectUrl>https://github.com/JordanMarr/Fable.Lit.Dsl</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/JordanMarr/Fable.Lit.Dsl</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PackageTags>fable;fsharp;lit;html;dsl;web-components;shoelace</PackageTags>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="../../README.md" Pack="true" PackagePath="/" />
+  </ItemGroup>
+
+  <!-- Add source files to "fable" folder in Nuget package -->
+  <ItemGroup>
+    <Content Include="*.fsproj; *.fs" PackagePath="fable\" />
+  </ItemGroup>
+
   <ItemGroup>
     <Compile Include="ShoelaceRegistration.fs" />
     <Compile Include="Dialog.fs" />
