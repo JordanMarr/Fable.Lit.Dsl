@@ -1,0 +1,4 @@
+<Solution>
+  <Project Path="Fable.Lit.Dsl.Shoelace/Fable.Lit.Dsl.Shoelace.fsproj" />
+  <Project Path="Fable.Lit.Dsl/Fable.Lit.Dsl.fsproj" />
+</Solution>
