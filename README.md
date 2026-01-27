@@ -10,7 +10,7 @@ More DSLs may be added over time.
 
 ### Related Projects
 - **Fable.Lit** - core F# bindings for Lit: https://github.com/fable-compiler/Fable.Lit
-- **fable-lit-template** - a turnkey template with Fable.Lit + Giraffe: https://github.com/JordanMarr/fable-lit-fullstack-template
+- **fable-lit-template** - a template with Fable.Lit + Giraffe: https://github.com/JordanMarr/fable-lit-fullstack-template
 
 ---
 
