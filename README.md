@@ -1,4 +1,6 @@
 # Fable.Lit.Dsl
+[![Fable.Lit.Dsl](https://img.shields.io/nuget/v/Fable.Lit.Dsl.svg?label=Fable.Lit.Dsl)](https://www.nuget.org/packages/Fable.Lit.Dsl/)
+[![Fable.Lit.Dsl.Shoelace](https://img.shields.io/nuget/v/Fable.Lit.Dsl.Shoelace.svg?label=Fable.Lit.Dsl.Shoelace)](https://www.nuget.org/packages/Fable.Lit.Dsl.Shoelace/)
 
 A collection of expressive, type-safe DSLs for building UI with **Fable.Lit**.
 This repo currently includes:
