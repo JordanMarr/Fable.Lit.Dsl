@@ -137,26 +137,44 @@ Typed, ergonomic bindings for the Shoelace Web Component library.
 open Fable.Lit.Dsl
 open Fable.Lit.Dsl.Shoelace
 
-view {
-    slButton {
-        variantPrimary
-        onClick (fun _ -> dispatch Save)
-        "Save"
-    }
+[<HookComponent>]
+let Page() =
+    let dialog = Dialog.createRef()
 
-    slInput {
-        label' "Email"
-        placeholder' "you@example.com"
-        onSlInput (fun e -> dispatch (EmailChanged e))
-    }
+    view {
+        slButton {
+            variantPrimary
+            onClick (fun _ -> Dialog.show dialog)
+            slIcon { slot' "prefix"; iconName "box-arrow-up-right" }
+            "Open Dialog"
+        }
+    
+        slDialog {
+            Dialog.bind dialog
+            label' "Confirmation"
 
-    slDialog {
-        label' "Confirm"
-        open' model.ShowDialog
-        onSlRequestClose (fun _ -> dispatch CloseDialog)
-        p { "Are you sure?" }
+            p { "Are you sure you want to proceed with this action?" }
+
+            div {
+                slot' "footer"
+                style "display: flex; gap: 10px; justify-content: flex-end;"
+
+                slButton {
+                    variantDefault
+                    onClick (fun _ -> Dialog.hide dialog)
+                    "Cancel"
+                }
+                slButton {
+                    variantPrimary
+                    onClick (fun _ ->
+                        setConfirmCount (confirmCount + 1)
+                        Dialog.hide dialog
+                    )
+                    "Confirm"
+                }
+            }
+        }
     }
-}
 ```
 
 ### Highlights
