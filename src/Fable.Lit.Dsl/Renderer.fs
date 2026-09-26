@@ -58,23 +58,16 @@ module Renderer =
         let templateStrings = TemplateCache.getTemplateStrings strings
         JsInterop.callTagFn JsInterop.htmlTagFn templateStrings (List.toArray values)
 
-    /// Renders a single attribute to a string for static attributes,
-    /// or returns the value for dynamic binding.
+    /// Renders a single attribute to its binding string and the value to bind.
+    /// Values are always bound rather than written into the template strings: Lit escapes them,
+    /// and the template (and therefore the DOM) is reused when only the values change.
     let private renderAttrString (attr: Attr) : string * obj option =
         match attr with
         | Attr(name, value) ->
-            // For simple string values, render inline
-            match value with
-            | :? string as s -> $" {name}=\"{s}\"", None
-            | :? int as i -> $" {name}=\"{i}\"", None
-            | :? float as f -> $" {name}=\"{f}\"", None
-            | :? bool as b ->
-                let boolStr = if b then "true" else "false"
-                $" {name}=\"{boolStr}\"", None
-            | _ -> $" {name}=", Some value
+            $" {name}=", Some value
         | BoolAttr(name, enabled) ->
-            if enabled then $" {name}", None
-            else "", None
+            // Lit's boolean attribute binding adds/removes the attribute
+            $" ?{name}=", Some (box enabled)
         | Prop(name, value) ->
             // Property bindings use Lit's .property=${value} syntax
             $" .{name}=", Some value
@@ -114,8 +107,8 @@ module Renderer =
     let rec render (node: Node) : TemplateResult =
         match node with
         | Text t ->
-            // Text nodes are just strings - Lit handles escaping
-            createTemplate [t] []
+            // Pass the string itself as the value so Lit renders it as escaped text
+            unbox t
 
         | RawHtml raw ->
             // Use Lit's unsafeHTML directive

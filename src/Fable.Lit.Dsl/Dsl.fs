@@ -305,13 +305,16 @@ module Attrs =
     let alt (value: string) : Attr = Attr("alt", value)
     let title (value: string) : Attr = Attr("title", value)
     let name (value: string) : Attr = Attr("name", value)
-    let value (value: obj) : Attr = Attr("value", value)
+    /// Sets the `value` property (not the attribute), so the control updates even after user input.
+    let value (value: obj) : Attr = Attr.Prop("value", value)
     let type' (value: string) : Attr = Attr("type", value)
     let placeholder (value: string) : Attr = Attr("placeholder", value)
     let disabled (value: bool) : Attr = BoolAttr("disabled", value)
     let readonly (value: bool) : Attr = BoolAttr("readonly", value)
-    let checked' (value: bool) : Attr = BoolAttr("checked", value)
-    let selected (value: bool) : Attr = BoolAttr("selected", value)
+    /// Sets the `checked` property (not the attribute), so the control updates even after user input.
+    let checked' (value: bool) : Attr = Attr.Prop("checked", value)
+    /// Sets the `selected` property (not the attribute), so the option updates even after user input.
+    let selected (value: bool) : Attr = Attr.Prop("selected", value)
     let required (value: bool) : Attr = BoolAttr("required", value)
     let hidden (value: bool) : Attr = BoolAttr("hidden", value)
     let autofocus (value: bool) : Attr = BoolAttr("autofocus", value)
