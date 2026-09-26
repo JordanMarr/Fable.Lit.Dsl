@@ -18,7 +18,11 @@ type Attr =
 type Node =
     | Element of tag: string * attrs: Attr list * children: Node list
     | Text of string
+    /// A dynamic list of nodes (e.g. from a `for` loop), rendered as a single template slot.
     | Fragment of Node list
+    /// The sequential statements of a builder body, each rendered in its own template slot.
+    /// Produced by the builders' Combine so that a parent's template stays stable across renders.
+    | Sequence of Node list
     | RawHtml of string
     | Template of TemplateResult
     | AttrNode of Attr

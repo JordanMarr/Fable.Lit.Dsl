@@ -6,6 +6,33 @@ open Lit
 // Computation Expression Builders
 // =============================================================================
 
+/// Logic shared by the builders.
+module internal BuilderHelpers =
+    /// Prepends a statement to the statements that follow it.
+    /// `a` is always a single statement (even an `if` whose body has several), so it stays one item;
+    /// `b` is either the rest of the body (a Sequence) or the final statement.
+    let combine (a: Node) (b: Node) : Node =
+        match b with
+        | Sequence rest -> Sequence (a :: rest)
+        | _ -> Sequence [ a; b ]
+
+    /// Separates attributes (at any depth of loops and conditionals) from child nodes.
+    /// Statements that only contained attributes are removed; everything else keeps its position.
+    let rec splitAttrs (nodes: Node list) : Attr list * Node list =
+        let parts = nodes |> List.map extractAttrs
+        parts |> List.collect fst, parts |> List.choose snd
+
+    and private extractAttrs (node: Node) : Attr list * Node option =
+        match node with
+        | AttrNode attr -> [ attr ], None
+        | Fragment nodes ->
+            let attrs, rest = splitAttrs nodes
+            attrs, Some (Fragment rest)
+        | Sequence nodes ->
+            let attrs, rest = splitAttrs nodes
+            attrs, Some (Sequence rest)
+        | other -> [], Some other
+
 /// Builder for creating HTML element nodes.
 type ElementBuilder(tag: string) =
 
@@ -28,13 +55,7 @@ type ElementBuilder(tag: string) =
         nodes |> Seq.toList |> Fragment
 
     member _.Combine(a: Node, b: Node) : Node =
-        match a, b with
-        | Nothing, x -> x
-        | x, Nothing -> x
-        | Fragment xs, Fragment ys -> Fragment (xs @ ys)
-        | Fragment xs, n -> Fragment (xs @ [ n ])
-        | n, Fragment ys -> Fragment (n :: ys)
-        | x, y -> Fragment [ x; y ]
+        BuilderHelpers.combine a b
 
     member _.Delay(f: unit -> Node) : Node =
         f()
@@ -46,25 +67,16 @@ type ElementBuilder(tag: string) =
         xs |> Seq.map f |> Seq.toList |> Fragment
 
     member _.Run(content: Node) : Node =
-        // Flatten the content and separate attributes from children
-        let rec flatten node =
-            match node with
-            | Fragment nodes -> nodes |> List.collect flatten
-            | Nothing -> []
-            | other -> [ other ]
-
-        let flatContent = flatten content
-
-        let attrs, children =
-            flatContent
-            |> List.fold (fun (attrs, children) node ->
-                match node with
-                | AttrNode attr -> (attr :: attrs, children)
-                | Nothing -> (attrs, children)
-                | other -> (attrs, other :: children)
-            ) ([], [])
-
-        Element(tag, List.rev attrs, List.rev children)
+        // Each statement of the body becomes one child slot (a `for` loop is a single slot
+        // holding a list, a false `if` is an empty slot), so the element's template depends
+        // only on the shape of the code and Lit can update it in place.
+        // Attributes are hoisted out, including those yielded inside loops and conditionals.
+        let statements =
+            match content with
+            | Sequence nodes -> nodes
+            | node -> [ node ]
+        let attrs, children = BuilderHelpers.splitAttrs statements
+        Element(tag, attrs, children)
 
 /// Builder for creating HTML fragments (no wrapper element).
 /// Returns a Node for use in nested contexts.
@@ -89,13 +101,7 @@ type TemplateBuilder() =
         nodes |> Seq.toList |> Fragment
 
     member _.Combine(a: Node, b: Node) : Node =
-        match a, b with
-        | Nothing, x -> x
-        | x, Nothing -> x
-        | Fragment xs, Fragment ys -> Fragment (xs @ ys)
-        | Fragment xs, n -> Fragment (xs @ [ n ])
-        | n, Fragment ys -> Fragment (n :: ys)
-        | x, y -> Fragment [ x; y ]
+        BuilderHelpers.combine a b
 
     member _.Delay(f: unit -> Node) : Node =
         f()
@@ -107,10 +113,9 @@ type TemplateBuilder() =
         xs |> Seq.map f |> Seq.toList |> Fragment
 
     member _.Run(content: Node) : Node =
-        // Return the content as-is (possibly simplified)
+        // Group multiple statements so the fragment occupies a single slot wherever it is used
         match content with
-        | Nothing -> Nothing
-        | Fragment [ single ] -> single
+        | Sequence nodes -> Fragment nodes
         | other -> other
 
 /// Builder for creating views that auto-render to TemplateResult.
@@ -119,12 +124,7 @@ type ViewBuilder() =
     inherit TemplateBuilder()
 
     member _.Run(content: Node) : TemplateResult =
-        let node =
-            match content with
-            | Nothing -> Nothing
-            | Fragment [ single ] -> single
-            | other -> other
-        Renderer.render node
+        Renderer.render content
 
 // =============================================================================
 // DSL Entry Points
@@ -404,3 +404,8 @@ module LitInterop =
     /// Creates a fragment from a list of nodes.
     let fragment (nodes: Node list) : Node =
         Fragment nodes
+
+    /// Renders a list keyed by `getKey` (Lit's `repeat` directive): each item's DOM is kept
+    /// and moved when items are inserted, removed or reordered, instead of being diffed by position.
+    let forKeyed (getKey: 'T -> string) (items: 'T seq) (render: 'T -> Node) : Node =
+        Template (Lit.mapUnique getKey (render >> Renderer.render) items)

@@ -313,6 +313,18 @@ view {
 }
 ```
 
+A `for` loop renders as a single list that Lit updates by position, so the surrounding element (with its scroll position, focus, and running animations) is kept when items are added or removed.
+When items are inserted, removed, or reordered in the middle of a list, use `forKeyed` so each item's DOM follows its key:
+
+```fsharp
+view {
+    ul {
+        forKeyed (fun (m: Message) -> m.Id) model.Messages (fun m ->
+            li { m.Text })
+    }
+}
+```
+
 ### Mixing HTML and Shoelace
 
 ```fsharp

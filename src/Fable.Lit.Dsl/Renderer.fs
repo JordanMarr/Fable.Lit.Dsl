@@ -125,16 +125,20 @@ module Renderer =
             // Already a TemplateResult, pass through
             t
 
-        | Fragment [] ->
-            // Empty fragment
+        | Fragment nodes ->
+            // Render as an array in a single slot: Lit diffs arrays positionally,
+            // so the enclosing template doesn't change when the item count does.
+            nodes |> List.map render |> List.toArray |> unbox
+
+        | Sequence [] ->
             Lit.nothing
 
-        | Fragment nodes ->
-            // Render all nodes and combine them
-            let results = nodes |> List.map render
+        | Sequence nodes ->
+            // One slot per statement; the strings depend only on the statement count,
+            // which is fixed by the shape of the code.
             createTemplate
-                ([ "" ] @ List.replicate (results.Length - 1) "" @ [ "" ])
-                (results |> List.map box)
+                ([ "" ] @ List.replicate (nodes.Length - 1) "" @ [ "" ])
+                (nodes |> List.map (render >> box))
 
         | AttrNode _ ->
             // AttrNodes should be filtered out before rendering
