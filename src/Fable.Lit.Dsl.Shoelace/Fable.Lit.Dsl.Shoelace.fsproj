@@ -6,7 +6,7 @@
   </PropertyGroup>
 
   <PropertyGroup>
-    <Version>2.1.0</Version>
+    <Version>2.1.1</Version>
     <Authors>Jordan Marr</Authors>
     <Description>Shoelace web component bindings for Fable.Lit.Dsl. Provides strongly-typed F# DSL elements for building Shoelace-based UIs with Fable.Lit.</Description>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
@@ -41,6 +41,10 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Fable.Lit.Dsl\Fable.Lit.Dsl.fsproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Update="FSharp.Core" Version="6.0.4" />
   </ItemGroup>
 
 </Project>
