@@ -6,7 +6,7 @@
   </PropertyGroup>
 
   <PropertyGroup>
-    <Version>2.0.0</Version>
+    <Version>2.1.0</Version>
     <Authors>Jordan Marr</Authors>
     <Description>A strongly‑typed HTML DSL for Fable.Lit, offering a clean F# syntax for Lit components and a foundation for building custom DSL libraries.</Description>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
@@ -33,7 +33,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Fable.Lit" Version="1.4.2" />
+    <PackageReference Include="Fable.Lit" Version="2.0.0" />
   </ItemGroup>
 
   <ItemGroup>
