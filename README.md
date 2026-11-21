@@ -1,12 +1,14 @@
 # Fable.Lit.Dsl
 [![Fable.Lit.Dsl](https://img.shields.io/nuget/v/Fable.Lit.Dsl.svg?label=Fable.Lit.Dsl)](https://www.nuget.org/packages/Fable.Lit.Dsl/)
 [![Fable.Lit.Dsl.Shoelace](https://img.shields.io/nuget/v/Fable.Lit.Dsl.Shoelace.svg?label=Fable.Lit.Dsl.Shoelace)](https://www.nuget.org/packages/Fable.Lit.Dsl.Shoelace/)
+[![Fable.Lit.Dsl.Metrino](https://img.shields.io/nuget/v/Fable.Lit.Dsl.Metrino.svg?label=Fable.Lit.Dsl.Metrino)](https://www.nuget.org/packages/Fable.Lit.Dsl.Metrino/)
 
 A collection of expressive, type-safe DSLs for building UI with **Fable.Lit**.
 This repo currently includes:
 
 - **Fable.Lit.Dsl** - a clean, idiomatic way to write Lit templates in F#
 - **Fable.Lit.Dsl.Shoelace** - typed components, attributes, and events for the Shoelace Web Component library
+- **Fable.Lit.Dsl.Metrino** - typed components, properties, and events for [Metrino](https://github.com/AngelMunoz/metrino), a Windows Phone / Windows 8 Metro design system
 
 More DSLs may be added over time.
 
@@ -22,7 +24,8 @@ Add the packages to your project:
 
 ```bash
 dotnet add package Fable.Lit.Dsl
-dotnet add package Fable.Lit.Dsl.Shoelace
+dotnet add package Fable.Lit.Dsl.Shoelace   # optional
+dotnet add package Fable.Lit.Dsl.Metrino    # optional
 ```
 
 If using Shoelace, register its assets at app startup:
@@ -228,6 +231,124 @@ onSlAfterHide handler   // Element hidden, animations complete
 onSlRequestClose handler // Close requested (dialogs/drawers)
 onSlSelect handler      // Menu item selected
 ```
+
+---
+
+# Metrino DSL
+
+Typed bindings for [Metrino](https://github.com/AngelMunoz/metrino) by Angel D. Munoz:
+Lit web components implementing the Windows Phone / Windows 8 **Metro** design system
+(pivots, panoramas, hubs, live tiles, app bars, and more).
+
+### Setup
+
+Metrino is published to GitHub Packages, so point the `@angelmunoz` scope at that registry
+in your project's `.npmrc`, then install it with its peer dependencies:
+
+```
+@angelmunoz:registry=https://npm.pkg.github.com
+```
+
+```bash
+npm install @angelmunoz/metrino lit @mdi/js
+```
+
+Metrino does not register elements as an import side effect. Register them once at startup:
+
+```fsharp
+open Fable.Lit.Dsl.Metrino
+
+// Everything...
+Metrino.registerAll()
+
+// ...or by category
+Metrino.registerInputs()
+Metrino.registerNavigation()
+
+// ...or individual components (dependencies are registered automatically)
+Metrino.Register.button()
+Metrino.Register.pivot()   // also registers metro-pivot-item
+```
+
+### Example
+
+```fsharp
+open Fable.Lit.Dsl
+open Fable.Lit.Dsl.Metrino
+
+let toasts = new ToastHost()
+
+[<HookComponent>]
+let Page() =
+    let dialog = Hook.useMemo (fun () -> MetroRef.create())
+    let agreed, setAgreed = Hook.useState false
+
+    view {
+        metroPivot {
+            metroPivotItem {
+                header' "settings"
+
+                metroToggleSwitch { on' true; "Wi-Fi" }
+
+                metroCheckBox {
+                    checked' agreed
+                    onMetroChange (fun e -> setAgreed (detail<{| ``checked``: bool |}> e).``checked``)
+                    "I agree"
+                }
+
+                metroButton {
+                    accent
+                    buttonTypeButton
+                    onClick (fun _ -> MetroRef.show dialog)
+                    "Save"
+                }
+            }
+
+            metroPivotItem {
+                header' "tiles"
+                metroTileGrid {
+                    columns 4
+                    metroIconicTile { sizeMedium; icon "mail"; title' "Mail"; count 3 }
+                    metroFlipTile {
+                        sizeWide
+                        div { slot' "front"; "Front" }
+                        div { slot' "back"; "Back" }
+                    }
+                }
+            }
+        }
+
+        metroContentDialog {
+            MetroRef.bind dialog
+            title' "Save changes?"
+            "Your settings will be applied."
+
+            metroButton {
+                slot' "buttons"
+                accent
+                onClick (fun _ ->
+                    toasts.Show("Your settings were saved", title = "Saved", severity = ToastSeverity.Success) |> ignore
+                    MetroRef.hide dialog)
+                "Save"
+            }
+        }
+    }
+```
+
+### Highlights
+
+- All Metrino components (`metroButton`, `metroPivot`, `metroPanorama`, `metroHub`, `metroLiveTile`, `metroAppBar`, `metroListView`, etc.)
+- Typed properties (`accent`, `header'`, `title'`, `on'`, `selectedIndex`, `orientation`, `selectionMode`, `items`, `sizeWide`, ...)
+- Typed events that receive a `CustomEvent` (`onMetroChange`, `onSelectionChanged`, `onItemClick`, `onShow`, `onClose`, ...), plus `detail<'T>` to read the payload
+- `MetroRef` for imperative calls (`show`, `showAt`, `hide`, `toggle`, `setOptions`, `setSuggestions`, `scrollToIndex`, or `invoke` for any method)
+- `ToastHost` for global toast notifications
+
+### Notes
+
+- Like a native button, `metroButton` submits its form by default. Use `buttonTypeButton` for buttons that should not.
+- Metrino events are unprefixed (`change`, `show`, `close`, ...). The core `onChange` / `onInput` still work, but `onMetroChange` / `onMetroInput` give you a `CustomEvent` with `detail`.
+- `onSelectionChanged` (`selectionchanged`: combo-box, list-box, pivot, hub, tab-view) and `onSelectionChange` (`selectionchange`: list-view, grid-view, long-list-selector, tree-view) are different events; use the one your component fires.
+- Theme with CSS custom properties (`--metro-accent`, ...), `data-theme="light"`, or `accent="red"` on `<html>`. See the [Metrino README](https://github.com/AngelMunoz/metrino#theming).
 
 ---
 
